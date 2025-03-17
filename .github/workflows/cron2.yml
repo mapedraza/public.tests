@@ -52,42 +52,36 @@ jobs:
               daysLeft=$(( ($(date -d "$expirationDate" +%s) - $(date -d "$TODAY" +%s)) / 86400 ))
 
               echo "Cliente: $name - Expira en $daysLeft días"
-
-                            if [ "$daysLeft" -lt 30 ]; then
-                  echo "Expira pronto, verificando si ya existe un issue..."
-
-                  # Check if `gh issue list` runs correctly
-                  ghIssueList=$(gh issue list --json title --state open --search "$name")
-                  echo "ghIssueList: $ghIssueList"
-                  if ! ghIssueList > issue_list.json; then
-                      echo "⚠️ Error running 'gh issue list', skipping issue creation."
-                      gh auth status
-                      continue
-                  fi
-
-                  issue_titles=$(jq -r '.[].title' issue_list.json)
-                  echo "issue_titles: $issue_titles
-                  if ! issue_titles; then
-                      echo "⚠️ Error parsing issue_list.json with jq"
-                      continue
-                  fi
-
-                  echo "IT: $issue_titles"
-
-                  if ! issue_exists=$(echo "$issue_titles" | grep -c "$name"); then
-                      echo "⚠️ Error with grep command"
-                      continue
-                  fi
-                  echo "debug2"
-
-                  if [ "$issue_exists" -eq 0 ]; then
-                      echo "Creando issue para $name..."
-                      gh issue create \
-                          --title "⚠️ Renovación pendiente para $name" \
-                          --body "La suscripción de **$name** expira en **$daysLeft días** (Fecha de expiración: $expirationDate). ¡Revisar renovación! 🚀" \
-                          --repo ${{ github.repository }}
-                  else
-                      echo "Ya existe un issue para $name, no se creará otro."
-                  fi
+              if [ "$daysLeft" -lt 30 ]; then
+                echo "Expira pronto, verificando si ya existe un issue..."
+                
+                # Check if `gh issue list` runs correctly
+                ghIssueList=$(gh issue list --json title --state open --search "$name")
+                echo "ghIssueList: $ghIssueList"
+                if ! ghIssueList > issue_list.json; then
+                    echo "⚠️ Error running 'gh issue list', skipping issue creation."
+                    gh auth status
+                    continue
+                fi
+                
+                issue_titles=$(jq -r '.[].title' issue_list.json)
+                echo "issue_titles: $issue_titles"
+                if [ -z "$issue_titles" ]; then
+                    echo "⚠️ Error parsing issue_list.json with jq"
+                    continue
+                fi
+                
+                echo "IT: $issue_titles"
+                
+                issue_exists=$(echo "$issue_titles" | grep -c "$name")
+                if [ "$issue_exists" -eq 0 ]; then
+                    echo "Creando issue para $name..."
+                    gh issue create \
+                        --title "⚠️ Renovación pendiente para $name" \
+                        --body "La suscripción de **$name** expira en **$daysLeft días** (Fecha de expiración: $expirationDate). ¡Revisar renovación! 🚀" \
+                        --repo ${{ github.repository }}
+                else
+                    echo "Ya existe un issue para $name, no se creará otro."
+                fi
               fi
           done
