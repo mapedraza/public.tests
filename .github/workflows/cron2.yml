@@ -66,9 +66,17 @@ jobs:
                   fi
 
                   echo "debug1"
-                  issue_exists=$(jq -r '.[].title' issue_list.json | grep -c "$name")
+                  if ! issue_titles=$(jq -r '.[].title' issue_list.json); then
+                      echo "⚠️ Error parsing issue_list.json with jq"
+                      continue
+                  fi
+
+                  if ! issue_exists=$(echo "$issue_titles" | grep -c "$name"); then
+                      echo "⚠️ Error with grep command"
+                      continue
+                  fi
                   echo "debug2"
-                  
+
                   if [ "$issue_exists" -eq 0 ]; then
                       echo "Creando issue para $name..."
                       gh issue create \
