@@ -1,0 +1,53 @@
+name: Check Expiration Dates
+
+on:
+  schedule:
+    - cron: "0 0 * * *"  # Ejecuta la acción cada día a medianoche UTC
+  workflow_dispatch:  # Permite ejecución manual
+
+permissions:
+  issues: write  # Permiso necesario para crear issues
+
+jobs:
+  check-expiration:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4  # Descarga el código para leer el JSON
+
+      - name: Check Expiring Customers
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TODAY=$(date -u +%Y-%m-%d)
+          echo "Fecha de hoy: $TODAY"
+
+          # Leer JSON y filtrar clientes con menos de 30 días hasta la expiración
+          customers=$(jq -c '.[]' certificates.json)
+          
+          for row in $customers; do
+            name=$(echo $row | jq -r '.name')
+            expirationDate=$(echo $row | jq -r '.expirationDate')
+
+            # Calcular diferencia de días
+            daysLeft=$(( ($(date -d "$expirationDate" +%s) - $(date -d "$TODAY" +%s)) / 86400 ))
+
+            echo "Cliente: $name - Expira en $daysLeft días"
+
+            if [ "$daysLeft" -lt 30 ]; then
+              echo "Expira pronto, verificando si ya existe un issue..."
+
+              # Buscar si ya existe un issue abierto con el nombre del cliente
+              issue_exists=$(gh issue list --state open --search "$name" --json title | jq -r '.[].title' | grep -c "$name")
+
+              if [ "$issue_exists" -eq 0 ]; then
+                echo "Creando issue para $name..."
+                gh issue create \
+                  --title "⚠️ Renovación pendiente para $name" \
+                  --body "La suscripción de **$name** expira en **$daysLeft días** (Fecha de expiración: $expirationDate). ¡Revisar renovación! 🚀" \
+                  --repo ${{ github.repository }}
+              else
+                echo "Ya existe un issue para $name, no se creará otro."
+              fi
+            fi
+          done

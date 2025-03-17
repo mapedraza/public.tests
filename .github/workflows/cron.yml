@@ -1,19 +1,19 @@
-name: Crear Issue Cada Minuto
+# name: Crear Issue Cada Minuto
 
-on:
-  schedule:
-    - cron: "*/1 * * * *"  # Se ejecuta cada minuto
-  workflow_dispatch:  # Permite ejecución manual
+# on:
+#   schedule:
+#     - cron: "*/1 * * * *"  # Se ejecuta cada minuto
+#   workflow_dispatch:  # Permite ejecución manual
 
-jobs:
-  crear-issue:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Crear un issue en GitHub
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh issue create \
-            --title "⏰ Issue automático - $(date '+%Y-%m-%d %H:%M:%S')" \
-            --body "Este issue fue creado automáticamente el $(date '+%Y-%m-%d %H:%M:%S') 🚀" \
-            --repo ${{ github.repository }}
+# jobs:
+#   crear-issue:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Crear un issue en GitHub
+#         env:
+#           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#         run: |
+#           gh issue create \
+#             --title "⏰ Issue automático - $(date '+%Y-%m-%d %H:%M:%S')" \
+#             --body "Este issue fue creado automáticamente el $(date '+%Y-%m-%d %H:%M:%S') 🚀" \
+#             --repo ${{ github.repository }}
