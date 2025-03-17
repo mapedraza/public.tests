@@ -69,7 +69,7 @@ jobs:
                   echo "⚠️ Expira pronto, verificando si ya existe un issue..."
                   
                   echo "🔄 Ejecutando 'gh issue list'..."
-                  gh issue list --json title --state open --search "Renovación pendiente para $name" > issue_list.json 2>&1
+                  gh issue list --json title --state open --search "Renovación de certificados pendiente para $name - $expirationDate" > issue_list.json 2>&1
 
                   echo "📂 Contenido de issue_list.json:"
                   cat issue_list.json
@@ -85,7 +85,7 @@ jobs:
                       echo "⚠️ No hay issues con el nombre '$name', creando uno nuevo..."
                       echo "🚀 Creando issue para $name..."
                       gh issue create \
-                          --title "⚠️ Renovación pendiente para $name" \
+                          --title "⚠️ Renovación de certificados pendiente para $name - $expirationDate" \
                           --body "La suscripción de **$name** expira en **$daysLeft días** (Fecha de expiración: $expirationDate). ¡Revisar renovación! 🚀" \
                           --repo ${{ github.repository }} \
                           --label "expiration"
