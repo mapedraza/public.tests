@@ -53,13 +53,16 @@ jobs:
 
               echo "Cliente: $name - Expira en $daysLeft días"
 
-              if [ "$daysLeft" -lt 30 ]; then
+                            if [ "$daysLeft" -lt 30 ]; then
                   echo "Expira pronto, verificando si ya existe un issue..."
 
                   # Check if `gh issue list` runs correctly
                   if ! gh issue list --json title --state open --search "$name" > issue_list.json; then
                       echo "⚠️ Error running 'gh issue list', skipping issue creation."
+                      gh auth status
                       continue
+                  else
+                    echo "ELSE"
                   fi
 
                   issue_exists=$(jq -r '.[].title' issue_list.json | grep -c "$name")
