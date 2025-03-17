@@ -82,17 +82,14 @@ jobs:
                   issue_titles=$(jq -r '.[].title' issue_list.json)
                   
                   if [ -z "$issue_titles" ]; then
-                      echo "❌ ERROR: No se pudieron extraer títulos de issue_list.json"
-                      continue
+                      echo "⚠️ No hay issues con el nombre '$name', creando uno nuevo..."
+                  else
+                      echo "🎯 Los siguientes issues abiertos tienen el nombre '$name':"
+                      echo "$issue_titles"
                   fi
                   
                   issue_exists=$(echo "$issue_titles" | grep -c "$name")
 
-                  if [ $? -ne 0 ]; then
-                      echo "⚠️ ERROR: grep falló al buscar el nombre en los issues"
-                      continue
-                  fi
-                  
                   if [ "$issue_exists" -eq 0 ]; then
                       echo "🚀 Creando issue para $name..."
                       gh issue create \
