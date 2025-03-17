@@ -87,7 +87,9 @@ jobs:
                       gh issue create \
                           --title "⚠️ Renovación pendiente para $name" \
                           --body "La suscripción de **$name** expira en **$daysLeft días** (Fecha de expiración: $expirationDate). ¡Revisar renovación! 🚀" \
-                          --repo ${{ github.repository }}
+                          --repo ${{ github.repository }} \
+                          --project "test" \
+                          --column "Done"
                   else
                       echo "🎯 Los siguientes issues abiertos tienen el nombre '$name':"
                       echo "$issue_titles"
