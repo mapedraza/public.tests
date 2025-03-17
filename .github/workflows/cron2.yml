@@ -69,7 +69,7 @@ jobs:
                   echo "⚠️ Expira pronto, verificando si ya existe un issue..."
                   
                   echo "🔄 Ejecutando 'gh issue list'..."
-                  gh issue list --json title --state open --search "$name" > issue_list.json 2>&1
+                  gh issue list --json title --state open --search "Renovación pendiente para $name" > issue_list.json 2>&1
 
                   echo "📂 Contenido de issue_list.json:"
                   cat issue_list.json
