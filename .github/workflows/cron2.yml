@@ -71,6 +71,8 @@ jobs:
                       continue
                   fi
 
+                  echo "IT: $issue_titles"
+
                   if ! issue_exists=$(echo "$issue_titles" | grep -c "$name"); then
                       echo "⚠️ Error with grep command"
                       continue
