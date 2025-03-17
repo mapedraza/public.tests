@@ -16,6 +16,20 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4  # Descarga el código para leer el JSON
 
+      - name: Install GitHub CLI
+        run: |
+          sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0
+          sudo apt-add-repository https://cli.github.com/packages
+          sudo apt update
+          sudo apt install gh -y
+
+      - name: Authenticate GitHub CLI
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh auth setup-git
+          gh auth status
+
       - name: Check Expiring Customers
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -52,7 +66,6 @@ jobs:
                   # Check if `gh issue list` runs correctly
                   if ! gh issue list --json title --state open --search "$name" > issue_list.json; then
                       echo "⚠️ Error running 'gh issue list', skipping issue creation."
-                      cat issue_list.json
                       continue
                   fi
 
