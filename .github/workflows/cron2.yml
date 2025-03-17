@@ -27,29 +27,19 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -x  # Habilita la depuración (muestra cada comando ejecutado)
-
           TODAY=$(date -u +%Y-%m-%d)
           echo "Fecha de hoy: $TODAY"
-
-          echo "📂 Contenido del repositorio:"
-          ls -l
 
           if [ ! -f certificates.json ]; then
             echo "❌ ERROR: No se encontró el archivo certificates.json"
             exit 1
           fi
 
-          echo "📜 Contenido de certificates.json:"
-          cat certificates.json
-
           customers=$(jq -c '.[]' certificates.json)
 
           for row in $customers; do
               name=$(echo $row | jq -r '.name')
               expirationDate=$(echo $row | jq -r '.expirationDate')
-
-              echo "🔍 Cliente: $name - Expiration Date: $expirationDate"
 
               if [[ -z "$expirationDate" ]]; then
                   echo "⚠️ Expiration date is empty for $name, skipping..."
@@ -68,11 +58,7 @@ jobs:
               if [ "$daysLeft" -lt 30 ]; then
                   echo "⚠️ Expira pronto, verificando si ya existe un issue..."
                   
-                  echo "🔄 Ejecutando 'gh issue list'..."
                   gh issue list --json title --state open --search "Renovación de certificados pendiente para $name - $expirationDate" > issue_list.json 2>&1
-
-                  echo "📂 Contenido de issue_list.json:"
-                  cat issue_list.json
 
                   if [ ! -s issue_list.json ]; then
                       echo "❌ ERROR: issue_list.json está vacío o 'gh issue list' falló."
@@ -82,7 +68,6 @@ jobs:
                   issue_titles=$(jq -r '.[].title' issue_list.json)
                   
                   if [ -z "$issue_titles" ]; then
-                      echo "⚠️ No hay issues con el nombre '$name', creando uno nuevo..."
                       echo "🚀 Creando issue para $name..."
                       gh issue create \
                           --title "⚠️ Renovación de certificados pendiente para $name - $expirationDate" \
@@ -90,8 +75,6 @@ jobs:
                           --repo ${{ github.repository }} \
                           --label "expiration"
                   else
-                      echo "🎯 Los siguientes issues abiertos tienen el nombre '$name':"
-                      echo "$issue_titles"
                       echo "✅ Ya existe un issue para $name, no se creará otro."
                   fi
               fi
