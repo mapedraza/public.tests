@@ -28,7 +28,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TODAY=$(date -u +%Y-%m-%d)
-          echo "Fecha de hoy: $TODAY"
 
           if [ ! -f certificates.json ]; then
             echo "❌ ERROR: No se encontró el archivo certificates.json"
@@ -53,10 +52,8 @@ jobs:
 
               daysLeft=$(( ($(date -d "$expirationDate" +%s) - $(date -d "$TODAY" +%s)) / 86400 ))
 
-              echo "📌 Cliente: $name - Expira en $daysLeft días"
-
               if [ "$daysLeft" -lt 30 ]; then
-                  echo "⚠️ Expira pronto, verificando si ya existe un issue..."
+                  echo "⚠️ Certificado de $name expira pronto, verificando si ya existe un issue..."
                   
                   gh issue list --json title --state open --search "Renovación de certificados pendiente para $name - $expirationDate" > issue_list.json 2>&1
 
@@ -68,14 +65,14 @@ jobs:
                   issue_titles=$(jq -r '.[].title' issue_list.json)
                   
                   if [ -z "$issue_titles" ]; then
-                      echo "🚀 Creando issue para $name..."
+                      echo "   🚀 Creando issue para $name..."
                       gh issue create \
                           --title "⚠️ Renovación de certificados pendiente para $name - $expirationDate" \
                           --body "La suscripción de **$name** expira en **$daysLeft días** (Fecha de expiración: $expirationDate). ¡Revisar renovación! 🚀" \
                           --repo ${{ github.repository }} \
                           --label "expiration"
                   else
-                      echo "✅ Ya existe un issue para $name, no se creará otro."
+                      echo "   ✅ Ya existe un issue para $name, no se creará otro."
                   fi
               fi
           done
