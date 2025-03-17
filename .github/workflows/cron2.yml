@@ -57,16 +57,17 @@ jobs:
                   echo "Expira pronto, verificando si ya existe un issue..."
 
                   # Check if `gh issue list` runs correctly
-                  if ! gh issue list --json title --state open --search "$name" > issue_list.json; then
+                  ghIssueList=$(gh issue list --json title --state open --search "$name")
+                  echo "ghIssueList: $ghIssueList"
+                  if ! ghIssueList > issue_list.json; then
                       echo "⚠️ Error running 'gh issue list', skipping issue creation."
                       gh auth status
                       continue
-                  else
-                    echo "ELSE"
                   fi
 
-                  echo "debug1"
-                  if ! issue_titles=$(jq -r '.[].title' issue_list.json); then
+                  issue_titles=$(jq -r '.[].title' issue_list.json)
+                  echo "issue_titles: $issue_titles)
+                  if ! issue_titles; then
                       echo "⚠️ Error parsing issue_list.json with jq"
                       continue
                   fi
