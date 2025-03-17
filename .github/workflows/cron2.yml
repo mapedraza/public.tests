@@ -65,8 +65,10 @@ jobs:
                     echo "ELSE"
                   fi
 
+                  echo "debug1"
                   issue_exists=$(jq -r '.[].title' issue_list.json | grep -c "$name")
-
+                  echo "debug2"
+                  
                   if [ "$issue_exists" -eq 0 ]; then
                       echo "Creando issue para $name..."
                       gh issue create \
