@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Crear un issue en GitHub
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh issue create \
             --title "⏰ Issue automático - $(date '+%Y-%m-%d %H:%M:%S')" \
