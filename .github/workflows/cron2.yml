@@ -83,20 +83,14 @@ jobs:
                   
                   if [ -z "$issue_titles" ]; then
                       echo "⚠️ No hay issues con el nombre '$name', creando uno nuevo..."
-                  else
-                      echo "🎯 Los siguientes issues abiertos tienen el nombre '$name':"
-                      echo "$issue_titles"
-                  fi
-                  
-                  issue_exists=$(echo "$issue_titles" | grep -c "$name")
-
-                  if [ "$issue_exists" -eq 0 ]; then
                       echo "🚀 Creando issue para $name..."
                       gh issue create \
                           --title "⚠️ Renovación pendiente para $name" \
                           --body "La suscripción de **$name** expira en **$daysLeft días** (Fecha de expiración: $expirationDate). ¡Revisar renovación! 🚀" \
                           --repo ${{ github.repository }}
                   else
+                      echo "🎯 Los siguientes issues abiertos tienen el nombre '$name':"
+                      echo "$issue_titles"
                       echo "✅ Ya existe un issue para $name, no se creará otro."
                   fi
               fi
