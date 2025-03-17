@@ -6,7 +6,8 @@ on:
   workflow_dispatch:  # Permite ejecución manual
 
 permissions:
-  issues: write  # Permiso necesario para crear issues
+  issues: write  # Required to create issues
+  contents: read  # Required to read repository data
 
 jobs:
   check-expiration:
@@ -49,7 +50,7 @@ jobs:
                   echo "Expira pronto, verificando si ya existe un issue..."
 
                   # Check if `gh issue list` runs correctly
-                  if ! gh issue list --state open --search "$name" --json title > issue_list.json; then
+                  if ! gh issue list --json title --state open --search "$name" > issue_list.json; then
                       echo "⚠️ Error running 'gh issue list', skipping issue creation."
                       cat issue_list.json
                       continue
