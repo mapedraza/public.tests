@@ -6,29 +6,42 @@ on:
   workflow_dispatch:  # Permite ejecución manual
 
 permissions:
-  issues: write  # Required to create issues
-  contents: read  # Required to read repository data
+  issues: write  # Requerido para crear issues
+  contents: read  # Requerido para leer el JSON del repositorio
 
 jobs:
   check-expiration:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
+      - name: 🛠️ Configurar entorno y clonar repo
         uses: actions/checkout@v4  # Descarga el código para leer el JSON
 
-      - name: Authenticate GitHub CLI
+      - name: 🔐 Autenticar GitHub CLI
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh auth setup-git
           gh auth status
 
-      - name: Check Expiring Customers
+      - name: 📅 Comprobar clientes con expiraciones próximas
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -x  # Habilita la depuración (muestra cada comando ejecutado)
+
           TODAY=$(date -u +%Y-%m-%d)
           echo "Fecha de hoy: $TODAY"
+
+          echo "📂 Contenido del repositorio:"
+          ls -l
+
+          if [ ! -f certificates.json ]; then
+            echo "❌ ERROR: No se encontró el archivo certificates.json"
+            exit 1
+          fi
+
+          echo "📜 Contenido de certificates.json:"
+          cat certificates.json
 
           customers=$(jq -c '.[]' certificates.json)
 
@@ -36,56 +49,58 @@ jobs:
               name=$(echo $row | jq -r '.name')
               expirationDate=$(echo $row | jq -r '.expirationDate')
 
-              echo "Cliente: $name - Expiration Date: $expirationDate"
+              echo "🔍 Cliente: $name - Expiration Date: $expirationDate"
 
               if [[ -z "$expirationDate" ]]; then
                   echo "⚠️ Expiration date is empty for $name, skipping..."
                   continue
               fi
 
-              # Ensure date command works
               if ! date -d "$expirationDate" +%s > /dev/null 2>&1; then
-                  echo "❌ Invalid date format for $expirationDate"
+                  echo "❌ ERROR: Invalid date format for $expirationDate"
                   continue
               fi
 
               daysLeft=$(( ($(date -d "$expirationDate" +%s) - $(date -d "$TODAY" +%s)) / 86400 ))
 
-              echo "Cliente: $name - Expira en $daysLeft días"
+              echo "📌 Cliente: $name - Expira en $daysLeft días"
+
               if [ "$daysLeft" -lt 30 ]; then
-                  echo "Expira pronto, verificando si ya existe un issue..."
+                  echo "⚠️ Expira pronto, verificando si ya existe un issue..."
                   
-                  # Check if `gh issue list` runs correctly
-                  gh issue list --json title --state open --search "$name" > issue_list.json
-                  if [ $? -ne 0 ]; then
-                      echo "⚠️ Error running 'gh issue list', skipping issue creation."
-                      gh auth status
+                  echo "🔄 Ejecutando 'gh issue list'..."
+                  gh issue list --json title --state open --search "$name" > issue_list.json 2>&1
+
+                  echo "📂 Contenido de issue_list.json:"
+                  cat issue_list.json
+
+                  if [ ! -s issue_list.json ]; then
+                      echo "❌ ERROR: issue_list.json está vacío o 'gh issue list' falló."
                       continue
                   fi
-                  
+
                   issue_titles=$(jq -r '.[].title' issue_list.json)
-                  echo "issue_titles: $issue_titles"
+                  
                   if [ -z "$issue_titles" ]; then
-                      echo "⚠️ Error parsing issue_list.json with jq"
+                      echo "❌ ERROR: No se pudieron extraer títulos de issue_list.json"
                       continue
                   fi
-                  
-                  echo "IT: $issue_titles"
                   
                   issue_exists=$(echo "$issue_titles" | grep -c "$name")
+
                   if [ $? -ne 0 ]; then
-                      echo "⚠️ Error with grep command"
+                      echo "⚠️ ERROR: grep falló al buscar el nombre en los issues"
                       continue
                   fi
                   
                   if [ "$issue_exists" -eq 0 ]; then
-                      echo "Creando issue para $name..."
+                      echo "🚀 Creando issue para $name..."
                       gh issue create \
                           --title "⚠️ Renovación pendiente para $name" \
                           --body "La suscripción de **$name** expira en **$daysLeft días** (Fecha de expiración: $expirationDate). ¡Revisar renovación! 🚀" \
                           --repo ${{ github.repository }}
                   else
-                      echo "Ya existe un issue para $name, no se creará otro."
+                      echo "✅ Ya existe un issue para $name, no se creará otro."
                   fi
               fi
           done
