@@ -88,7 +88,7 @@ jobs:
                           --title "⚠️ Renovación pendiente para $name" \
                           --body "La suscripción de **$name** expira en **$daysLeft días** (Fecha de expiración: $expirationDate). ¡Revisar renovación! 🚀" \
                           --repo ${{ github.repository }} \
-                          --project "test" 
+                          --project "2" 
                   else
                       echo "🎯 Los siguientes issues abiertos tienen el nombre '$name':"
                       echo "$issue_titles"
